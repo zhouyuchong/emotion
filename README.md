@@ -1,5 +1,5 @@
 # Emotion Detection Using Yolo-V5 and RepVGG
-This repository uses [Yolo-V5](https://github.com/ultralytics/yolov5) and [RepVGG](https://github.com/DingXiaoH/RepVGG) to detect facial expressions and classify emotions.To see how to use the code, check out the [usage](#usage) section for more information.
+This repository uses [Yolo-V5](https://github.com/ultralytics/yolov5) and [RepVGG](https://github.com/DingXiaoH/RepVGG) to detect facial expressions and classify emotions (see the [architecture](#Architecture) for more info on how it works). To see how to use the code, check out the [usage](#usage) section for more information.
 ## Example
 This is a picture of me pulling all 8 of the facial expressions that the model classifies:
 ![Example Image](emotions.png "Emotions")
@@ -17,7 +17,7 @@ This model detects 8 basic facial expressions:
 - happy
 - neutral
 - sad
-- surprise
+- surprise<br>
 and then attempts to assign them appropriate colours. It classifies every face, even if it is not that confident about the result!
 ## Usage
 ```
@@ -46,7 +46,7 @@ optional arguments:
   --show-fps            print fps to console
 ```
 ## Architecture
- and  repositories. R and see the RepVGG paper [here](https://arxiv.org/pdf/2101.03697.pdf). Yolo-V5 detects the faces in each image and then RepVGG classifies them.
+There are two parts to this code, facial detection and emotion classification.
 ### Face Detection
 This repository is a fork of [ultralytics/Yolo-V5](https://github.com/ultralytics/yolov5) because this is the code for classifying faces. Read [here](https://ultralytics.com/yolov5) for more information on Yolo-V5. To detect faces, the model was trained on the [WIDER FACE](http://shuoyang1213.me/WIDERFACE/) dataset which has 393,703 faces. For more information, check out the paper [here](https://arxiv.org/pdf/1511.06523.pdf).
 ### Facial Expression Classification
