@@ -19,7 +19,7 @@ from utils.torch_utils import select_device, time_synchronized
 
 
 def detect(opt):
-    source, view_img, imgsz, nosave, show_conf, save_path = opt.source, opt.view_img, opt.img_size, opt.no_save, not opt.hide_conf, opt.output_path
+    source, view_img, imgsz, nosave, show_conf, save_path, show_fps = opt.source, not opt.hide_img, opt.img_size, opt.no_save, not opt.hide_conf, opt.output_path, opt.show_fps
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://', 'https://'))
     # Directories
@@ -99,7 +99,8 @@ def detect(opt):
                 i = 0
                 for *xyxy, conf, cls in reversed(det):
 
-                    if view_img:  # Add bbox to image
+                    if view_img or not nosave:  
+                        # Add bbox to image with emotions on 
                         label = emotions[i][0]
                         colour = colors[emotions[i][1]]
                         i += 1
@@ -108,7 +109,8 @@ def detect(opt):
 
             # Stream results
             if view_img:
-                cv2.imshow("Emotion detection", cv2.resize(im0, (im0.shape[1]*2,im0.shape[0]*2)))
+                display_img = cv2.resize(im0, (im0.shape[1]*2,im0.shape[0]*2))
+                cv2.imshow("Emotion Detection",display_img)
                 cv2.waitKey(1)  # 1 millisecond
             if not nosave:
                 # Save results (image with detections)
@@ -124,8 +126,10 @@ def detect(opt):
                         fps, w, h = 30, im0.shape[1], im0.shape[0]
                     vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                 vid_writer.write(im0)
-        print(f"FPS: {1/(time.time()-t0):.2f}"+" "*5,end="\r")
-        t0 = time.time()
+        if show_fps:
+            # calculate and display fps
+            print(f"FPS: {1/(time.time()-t0):.2f}"+" "*5,end="\r")
+            t0 = time.time()
         
 
 if __name__ == '__main__':
@@ -135,7 +139,7 @@ if __name__ == '__main__':
     parser.add_argument('--conf-thres', type=float, default=0.5, help='face confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
-    parser.add_argument('--view-img', action='store_true', help='display results')
+    parser.add_argument('--hide-img', action='store_true', help='hide results')
     save = parser.add_mutually_exclusive_group()
     save.add_argument('--output-path', default="output.mp4", help='save location')
     save.add_argument('--no-save', action='store_true', help='do not save images/videos')
@@ -143,9 +147,8 @@ if __name__ == '__main__':
     parser.add_argument('--augment', action='store_true', help='augmented inference')
     parser.add_argument('--line-thickness', default=2, type=int, help='bounding box thickness (pixels)')
     parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
+    parser.add_argument('--show-fps', default=False, action='store_true', help='print fps to console')
     opt = parser.parse_args()
     check_requirements(exclude=('pycocotools', 'thop'))
-    print("Q")
-
     with torch.no_grad():
         detect(opt=opt)
