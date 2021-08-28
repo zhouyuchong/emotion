@@ -1,8 +1,10 @@
 # Emotion Detection Using Yolo-V5 and RepVGG
 This repository uses [Yolo-V5](https://github.com/ultralytics/yolov5) and [RepVGG](https://github.com/DingXiaoH/RepVGG) to detect facial expressions and classify emotions (see the [architecture](#Architecture) for more info on how it works). To see how to use the code, check out the [usage](#usage) section for more information.
 ## Example
+This is an example of emotion classification:
+![Example Image](example.png "Example Image")
 This is a picture of me pulling all 8 of the facial expressions that the model classifies:
-![Example Image](emotions.png "Emotions")
+![Example Image](emotions.png "Emotions")<br>
 ## Setup
 ### pip
 `pip install -r requirements.txt`
