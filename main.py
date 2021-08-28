@@ -1,5 +1,6 @@
 import argparse
 import time
+import os
 from pathlib import Path
 import numpy as np
 
@@ -113,19 +114,27 @@ def detect(opt):
                 cv2.imshow("Emotion Detection",display_img)
                 cv2.waitKey(1)  # 1 millisecond
             if not nosave:
-                # Save results (image with detections)
-                if vid_path != save_path:  # new video
-                    vid_path = save_path
-                    if isinstance(vid_writer, cv2.VideoWriter):
-                        vid_writer.release()  # release previous video writer
-                    if vid_cap:  # video
-                        fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                        w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                        h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                    else:  # stream
-                        fps, w, h = 30, im0.shape[1], im0.shape[0]
-                    vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-                vid_writer.write(im0)
+                if save_path.endswith(".mp4"):
+                    # Save results (image with detections)
+                    if vid_path != save_path:  # new video
+                        vid_path = save_path
+                        if isinstance(vid_writer, cv2.VideoWriter):
+                            vid_writer.release()  # release previous video writer
+                        if vid_cap:  # video
+                            fps = vid_cap.get(cv2.CAP_PROP_FPS)
+                            w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                            h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        else:  # stream
+                            fps, w, h = 30, im0.shape[1], im0.shape[0]
+                        vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                    vid_writer.write(im0)
+                elif save_path.split(".")[-1] in ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]:
+                    cv2.imwrite(save_path,im0)
+                else:
+                    output_path = os.path.join(save_path,os.path.split(path)[1])
+                    create_folder(output_path)
+                    cv2.imwrite(output_path,im0)
+
         if show_fps:
             # calculate and display fps
             print(f"FPS: {1/(time.time()-t0):.2f}"+" "*5,end="\r")
