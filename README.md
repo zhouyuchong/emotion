@@ -48,7 +48,7 @@ optional arguments:
   --show-fps            print fps to console
 ```
 ## Architecture
-There are two parts to this code, facial detection and emotion classification.
+There are two parts to this code: facial detection and emotion classification.
 ### Face Detection
 This repository is a fork of [ultralytics/Yolo-V5](https://github.com/ultralytics/yolov5) because this is the code for classifying faces. Read [here](https://ultralytics.com/yolov5) for more information on Yolo-V5. To detect faces, the model was trained on the [WIDER FACE](http://shuoyang1213.me/WIDERFACE/) dataset which has 393,703 faces. For more information, check out the paper [here](https://arxiv.org/pdf/1511.06523.pdf).
 ### Facial Expression Classification
