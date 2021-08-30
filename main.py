@@ -114,7 +114,7 @@ def detect(opt):
                 cv2.imshow("Emotion Detection",display_img)
                 cv2.waitKey(1)  # 1 millisecond
             if not nosave:
-                if save_path.endswith(".mp4"):
+                if save_path.split(".")[-1] in ["mp4","avi"]:
                     # Save results (image with detections)
                     if vid_path != save_path:  # new video
                         vid_path = save_path
