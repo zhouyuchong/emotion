@@ -114,7 +114,9 @@ def detect(opt):
                 cv2.imshow("Emotion Detection",display_img)
                 cv2.waitKey(1)  # 1 millisecond
             if not nosave:
-                if save_path.split(".")[-1] in ["mp4","avi"]:
+                # check what the output format is
+                ext = save_path.split(".")[-1]
+                if ext in ["mp4","avi"]:
                     # Save results (image with detections)
                     if vid_path != save_path:  # new video
                         vid_path = save_path
@@ -128,9 +130,11 @@ def detect(opt):
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
-                elif save_path.split(".")[-1] in ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]:
+                elif ext in ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]:
+                    # save image
                     cv2.imwrite(save_path,im0)
                 else:
+                    # save to folder
                     output_path = os.path.join(save_path,os.path.split(path)[1])
                     create_folder(output_path)
                     cv2.imwrite(output_path,im0)
