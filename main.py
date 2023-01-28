@@ -33,7 +33,7 @@ def detect(opt):
     half = device.type != 'cpu'  # half precision only supported on CUDA
 
     # Load model
-    model = attempt_load("weights/yolo.pt", map_location=device)  # load FP32 model
+    model = attempt_load("weights/yolov7-tiny.pt", map_location=device)  # load FP32 model
     stride = int(model.stride.max())  # model stride
     imgsz = check_img_size(imgsz, s=stride)  # check img_size
     if half:
@@ -90,16 +90,26 @@ def detect(opt):
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                 images = []
+
                 for *xyxy, conf, cls in reversed(det):
-                    x1, y1, x2, y2 = xyxy
+                    #xyxy = [[x, y, w, h] for x, y, w, h in xyxy]
+                   # xyxy = np.array(xyxy)
+                    #xyxy = np.array(xyxy)
+                   # xyxy = xyxy.tolist()
+                    #x1, y1, x2, y2 = zip(*xyxy)
+
+                    x1, y1, x2, y2 = xyxy[0], xyxy[1], xyxy[2], xyxy[3]
+                   # x1, y1, x2, y2 = xyxy[:,:4]
+
                     images.append(im0.astype(np.uint8)[int(y1):int(y2), int(x1): int(x2)])
                 
                 if images:
                     emotions = detect_emotion(images,show_conf)
                 # Write results
                 i = 0
+                #for *xyxy, conf, cls in reversed(det):
+                #for *xyxy, conf, cls in det[::-1]:
                 for *xyxy, conf, cls in reversed(det):
-
                     if view_img or not nosave:  
                         # Add bbox to image with emotions on 
                         label = emotions[i][0]
@@ -147,7 +157,7 @@ def detect(opt):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source', type=str, default='0', help='source')  # file/folder, 0 for webcam
+    parser.add_argument('--source', type=str, default='C:/Users/nikhi/Downloads/kids.mp4', help='source')  # file/folder, 0 for webcam
     parser.add_argument('--img-size', type=int, default=512, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='face confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')

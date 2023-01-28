@@ -39,20 +39,20 @@ def attempt_download(file, repo='ultralytics/yolov5'):
             redundant = False  # second download option
             try:  # GitHub
                 url = f'https://github.com/{repo}/releases/download/{tag}/{name}'
-                
+                print(f'Downloading {url} to {file}...')
                 torch.hub.download_url_to_file(url, file)
                 assert file.exists() and file.stat().st_size > 1E6  # check
             except Exception as e:  # GCP
-                
+                print(f'Download error: {e}')
                 assert redundant, 'No secondary mirror'
                 url = f'https://storage.googleapis.com/{repo}/ckpt/{name}'
-                
+                print(f'Downloading {url} to {file}...')
                 os.system(f'curl -L {url} -o {file}')  # torch.hub.download_url_to_file(url, weights)
             finally:
                 if not file.exists() or file.stat().st_size < 1E6:  # check
                     file.unlink(missing_ok=True)  # remove partial downloads
-                    
-                
+                    print(f'ERROR: Download failure: {msg}')
+                print('')
                 return
 
 
@@ -61,7 +61,7 @@ def gdrive_download(id='16TiPfZj7htmTyhntwcZyEEAejOUxuT6m', file='tmp.zip'):
     t = time.time()
     file = Path(file)
     cookie = Path('cookie')  # gdrive cookie
-    
+    print(f'Downloading https://drive.google.com/uc?export=download&id={id} as {file}... ', end='')
     file.unlink(missing_ok=True)  # remove existing file
     cookie.unlink(missing_ok=True)  # remove existing cookie
 
@@ -78,16 +78,16 @@ def gdrive_download(id='16TiPfZj7htmTyhntwcZyEEAejOUxuT6m', file='tmp.zip'):
     # Error check
     if r != 0:
         file.unlink(missing_ok=True)  # remove partial
-        
+        print('Download error ')  # raise Exception('Download error')
         return r
 
     # Unzip if archive
     if file.suffix == '.zip':
-        
+        print('unzipping... ', end='')
         os.system(f'unzip -q {file}')  # unzip
         file.unlink()  # remove zip to free space
 
-    
+    print(f'Done ({time.time() - t:.1f}s)')
     return r
 
 
@@ -108,7 +108,7 @@ def get_token(cookie="./cookie"):
 #
 #     blob.upload_from_filename(source_file_name)
 #
-#     
+#     print('File {} uploaded to {}.'.format(
 #         source_file_name,
 #         destination_blob_name))
 #
@@ -121,6 +121,6 @@ def get_token(cookie="./cookie"):
 #
 #     blob.download_to_filename(destination_file_name)
 #
-#     
+#     print('Blob {} downloaded to {}.'.format(
 #         source_blob_name,
 #         destination_file_name))
