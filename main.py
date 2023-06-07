@@ -145,7 +145,7 @@ def detect(opt):
                     cv2.imwrite(save_path,im0)
                 else:
                     # save to folder
-                    output_path = os.path.join(save_path,os.path.split(path)[1])
+                    output_path = os.path.join(save_path, os.path.relpath(path, os.getcwd()))
                     create_folder(output_path)
                     cv2.imwrite(output_path,im0)
 

@@ -1,54 +1,85 @@
-import torch
-import torch.nn as nn
+import torchvision.transforms.functional as F
+from torchvision.models import vgg11
 import torch.backends.cudnn as cudnn
-import torchvision.transforms as transforms
+import torch
 
+from tqdm import tqdm
 from PIL import Image
-from vgg import create_RepVGG_A0 as create
+import requests
+import os
 
 # Load model
-model = create(deploy=True)
+model = vgg11()
 
 # 8 Emotions
 emotions = ("anger","contempt","disgust","fear","happy","neutral","sad","surprise")
+
+def load_weights(path: str):
+    if not os.path.exists(path):
+        # download from GitHub releases
+        url = "https://github.com/George-Ogden/emotion/releases/download/v11/vgg.pth"
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(path, "wb") as f:
+                for chunk in tqdm(r.iter_content(chunk_size=8192), desc="Downloading weights"):
+                    f.write(chunk)
+    return torch.load(path)
 
 def init(device):
     # Initialise model
     global dev
     dev = device
-    model.to(device)
-    checkpoint = torch.load("weights/vgg.pth")
-    if 'state_dict' in checkpoint:
-        checkpoint = checkpoint['state_dict']
-    ckpt = {k.replace('module.', ''):v for k,v in checkpoint.items()}
-    model.load_state_dict(ckpt)
-    
     # Change to classify only 8 features
-    model.linear.out_features = 8
-    model.linear._parameters["weight"] = model.linear._parameters["weight"][:8,:]
-    model.linear._parameters["bias"] = model.linear._parameters["bias"][:8]
+    model.classifier[-1].out_features = 8
+    model.classifier[-1]._parameters["weight"] = model.classifier[-1]._parameters["weight"][:8,:]
+    model.classifier[-1]._parameters["bias"] = model.classifier[-1]._parameters["bias"][:8]
+    
+    # Load weights
+    weights = load_weights("weights/vgg.pth")
+    model.load_state_dict(weights)
 
-    # Save to eval
+    # Prepare for inference
     cudnn.benchmark = True
+    model.to(device)
     model.eval()
+
+def transform(image: Image) -> torch.Tensor:
+    target_size = 224
+    
+    # Resize and crop image
+    image = F.resize(image, target_size)
+    max_size = max(image.size)
+    W, H = image.size
+    left_padding = (max_size - W) // 2
+    right_padding = max_size - W - left_padding
+    top_padding = (max_size - H) // 2
+    bottom_padding = max_size - H - top_padding
+    image = F.pad(image, padding=(left_padding, top_padding, right_padding, bottom_padding), fill=114)
+    image = F.resize(image, target_size)
+
+    # Convert to tensor and normalise
+    image = F.to_tensor(image)
+    image = F.normalize(image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    return image
 
 def detect_emotion(images,conf=True):
     with torch.no_grad():
         # Normalise and transform images
-        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                        std=[0.229, 0.224, 0.225])
-        x = torch.stack([transforms.Compose([
-                transforms.Resize(256),
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                normalize,
-            ])(Image.fromarray(image)) for image in images])
+        x = torch.stack([
+            transform(
+                Image.fromarray(
+                    image[:,:,::-1]
+                )
+            ) for image in images
+        ])
+
         # Feed through the model
-        y = model(x.to(dev))
+        logits = model(x.to(dev))
+        probs = torch.softmax(logits, dim=-1)
         result = []
-        for i in range(y.size()[0]):
+        for prob in probs:
             # Add emotion to result
-            emotion = (max(y[i]) == y[i]).nonzero().item()
+            idx = prob.argmax().item()
             # Add appropriate label if required
-            result.append([f"{emotions[emotion]}{f' ({100*y[i][emotion].item():.1f}%)' if conf else ''}",emotion])
+            result.append([f"{emotions[idx]}{f' ({100*prob[idx].item():.1f}%)' if conf else ''}",idx])
     return result

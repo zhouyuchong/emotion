@@ -49,6 +49,8 @@ VOC/
 *.torchscript
 darknet53.conv.74
 yolov3-tiny.conv.15
+weights/vgg.pth
+# ^^^ now available from GitHub 
 
 # GitHub Python GitIgnore ----------------------------------------------------------------------------------------------
 # Byte-compiled / optimized / DLL files
