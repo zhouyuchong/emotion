@@ -1,16 +1,29 @@
-import torch
+import torchvision.transforms.functional as F
 from torchvision.models import vgg11
 import torch.backends.cudnn as cudnn
-import torchvision.transforms.functional as F
+import torch
 
-from utils.datasets import letterbox
+from tqdm import tqdm
 from PIL import Image
+import requests
+import os
 
 # Load model
 model = vgg11()
 
 # 8 Emotions
 emotions = ("anger","contempt","disgust","fear","happy","neutral","sad","surprise")
+
+def load_weights(path: str):
+    if not os.path.exists(path):
+        # download from GitHub releases
+        url = "https://github.com/George-Ogden/emotion/releases/download/v11/vgg.pth"
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(path, "wb") as f:
+                for chunk in tqdm(r.iter_content(chunk_size=8192), desc="Downloading weights"):
+                    f.write(chunk)
+    return torch.load(path)
 
 def init(device):
     # Initialise model
@@ -22,9 +35,8 @@ def init(device):
     model.classifier[-1]._parameters["bias"] = model.classifier[-1]._parameters["bias"][:8]
     
     # Load weights
-    state_dict = torch.load("weights/vgg.pth")
-    model.load_state_dict(state_dict)
-    
+    weights = load_weights("weights/vgg.pth")
+    model.load_state_dict(weights)
 
     # Prepare for inference
     cudnn.benchmark = True
