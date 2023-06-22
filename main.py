@@ -1,20 +1,19 @@
+from pathlib import Path
+import numpy as np
 import argparse
 import time
 import os
-from pathlib import Path
-import numpy as np
 
-import cv2
-import torch
 import torch.backends.cudnn as cudnn
-from numpy import random
+import torch
+import cv2
 
 from emotion import detect_emotion, init
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, \
-    scale_coords, xyxy2xywh, strip_optimizer, set_logging, save_one_box, create_folder
+    scale_coords, set_logging, create_folder
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, time_synchronized
 
@@ -157,7 +156,7 @@ def detect(opt):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source', type=str, default='C:/Users/nikhi/Downloads/kids.mp4', help='source')  # file/folder, 0 for webcam
+    parser.add_argument('--source', type=str, default='0', help='source')  # file/folder, 0 for webcam
     parser.add_argument('--img-size', type=int, default=512, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='face confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
