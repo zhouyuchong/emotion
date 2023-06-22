@@ -4,7 +4,7 @@ import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
 
 from PIL import Image
-from vgg import create_RepVGG_A0 as create
+from repvgg import create_RepVGG_A0 as create
 
 # Load model
 model = create(deploy=True)
@@ -17,16 +17,7 @@ def init(device):
     global dev
     dev = device
     model.to(device)
-    checkpoint = torch.load("weights/vgg.pth")
-    if 'state_dict' in checkpoint:
-        checkpoint = checkpoint['state_dict']
-    ckpt = {k.replace('module.', ''):v for k,v in checkpoint.items()}
-    model.load_state_dict(ckpt)
-    
-    # Change to classify only 8 features
-    model.linear.out_features = 8
-    model.linear._parameters["weight"] = model.linear._parameters["weight"][:8,:]
-    model.linear._parameters["bias"] = model.linear._parameters["bias"][:8]
+    model.load_state_dict(torch.load("weights/repvgg.pth"))
 
     # Save to eval
     cudnn.benchmark = True
