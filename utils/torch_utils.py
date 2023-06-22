@@ -1,8 +1,10 @@
 # PyTorch utils
 
 import datetime
+import logging
 import math
 import os
+import platform
 import subprocess
 import time
 from contextlib import contextmanager
@@ -19,6 +21,7 @@ try:
     import thop  # for FLOPS computation
 except ImportError:
     thop = None
+logger = logging.getLogger(__name__)
 
 
 @contextmanager
@@ -59,6 +62,7 @@ def git_describe(path=Path(__file__).parent):  # path must be a directory
 
 def select_device(device='', batch_size=None):
     # device = 'cpu' or '0' or '0,1,2,3'
+    s = f'YOLOv5 � {git_describe() or date_modified()} torch {torch.__version__} '  # string
     cpu = device.lower() == 'cpu'
     if cpu:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # force torch.cuda.is_available() = False
@@ -71,7 +75,14 @@ def select_device(device='', batch_size=None):
         n = torch.cuda.device_count()
         if n > 1 and batch_size:  # check that batch_size is compatible with device_count
             assert batch_size % n == 0, f'batch-size {batch_size} not multiple of GPU count {n}'
+        space = ' ' * len(s)
+        for i, d in enumerate(device.split(',') if device else range(n)):
+            p = torch.cuda.get_device_properties(i)
+            s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / 1024 ** 2}MB)\n"  # bytes to MB
+    else:
+        s += 'CPU\n'
 
+    logger.info(s.encode().decode('ascii', 'ignore') if platform.system() == 'Windows' else s)  # emoji-safe
     return torch.device('cuda:0' if cuda else 'cpu')
 
 
@@ -210,6 +221,8 @@ def model_info(model, verbose=False, img_size=640):
         fs = ', %.1f GFLOPS' % (flops * img_size[0] / stride * img_size[1] / stride)  # 640x640 GFLOPS
     except (ImportError, Exception):
         fs = ''
+
+    logger.info(f"Model Summary: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
 
 
 def load_classifier(name='resnet101', n=2):

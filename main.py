@@ -145,7 +145,7 @@ def detect(opt):
                     cv2.imwrite(save_path,im0)
                 else:
                     # save to folder
-                    output_path = os.path.join(save_path, os.path.relpath(path, os.getcwd()))
+                    output_path = os.path.join(save_path,os.path.split(path)[1])
                     create_folder(output_path)
                     cv2.imwrite(output_path,im0)
 
@@ -157,7 +157,7 @@ def detect(opt):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source', type=str, default='.', help='source (file/folder, 0 for webcam)')
+    parser.add_argument('--source', type=str, default='C:/Users/nikhi/Downloads/kids.mp4', help='source')  # file/folder, 0 for webcam
     parser.add_argument('--img-size', type=int, default=512, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='face confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
